@@ -1,1 +1,1 @@
-export { GateAgent } from "./gate-agent";
+export { GateAgent, GateAgentOptions } from "./gate-agent";
