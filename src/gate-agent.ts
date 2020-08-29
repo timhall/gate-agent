@@ -15,6 +15,17 @@ export type GateAgentOptions = AgentOptions & {
 	noProxy?: string | string[];
 };
 
+type FutureOrInternalRequest = ClientRequest & {
+	// v14.5.0+
+	protocol?: string;
+	host?: string;
+
+	// Internal API in at least v12.x.x
+	agent?: {
+		protocol: string;
+	};
+};
+
 export class GateAgent extends Agent {
 	noProxy: string[];
 	agents: {
@@ -52,8 +63,11 @@ export class GateAgent extends Agent {
 		};
 	}
 
-	callback(request: ClientRequest) {
-		const url = new URL(request.path);
+	callback(request: FutureOrInternalRequest) {
+		const protocol = request.protocol || request.agent?.protocol || "https:";
+		const host = request.host || request.getHeader("host") || "localhost";
+		const url = new URL(request.path, `${protocol}//${host}`);
+
 		const isHttps = url.protocol === "https:";
 		const noProxy = matchUrl(url.toString(), this.noProxy);
 
