@@ -35,7 +35,7 @@ export class GateAgent extends Agent {
 		httpsProxy?: HttpsProxyAgent;
 	};
 
-	constructor(options: GateAgentOptions) {
+	constructor(options: GateAgentOptions = {}) {
 		super();
 
 		const {
