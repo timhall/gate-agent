@@ -3,17 +3,18 @@ import _debug from "debug";
 import { Agent as HttpAgent } from "http";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { Agent as HttpsAgent, AgentOptions } from "https";
-import { HttpsProxyAgent } from "https-proxy-agent";
+import { HttpsProxyAgent, HttpsProxyAgentOptions } from "https-proxy-agent";
 import matchUrl from "match-url-wildcard";
 import { URL } from "url";
 
 const debug = _debug("gate-agent");
 
-export type GateAgentOptions = AgentOptions & {
-	httpProxy?: string;
-	httpsProxy?: string;
-	noProxy?: string | string[];
-};
+export type GateAgentOptions = AgentOptions &
+	Pick<HttpsProxyAgentOptions, "headers"> & {
+		httpProxy?: string;
+		httpsProxy?: string;
+		noProxy?: string | string[];
+	};
 
 type FutureOrInternalRequest = ClientRequest & {
 	// v14.5.0+
@@ -22,7 +23,7 @@ type FutureOrInternalRequest = ClientRequest & {
 
 	// Internal API in at least v12.x.x
 	agent?: {
-		protocol: string;
+		protocol?: string;
 	};
 };
 
@@ -39,11 +40,43 @@ export class GateAgent extends Agent {
 		super();
 
 		const {
-			httpProxy = process.env.HTTP_PROXY || process.env.http_proxy,
-			httpsProxy = process.env.HTTPS_PROXY || process.env.https_proxy,
+			httpProxy: rawHttpProxy = process.env.HTTP_PROXY ||
+				process.env.http_proxy,
+			httpsProxy: rawHttpsProxy = process.env.HTTPS_PROXY ||
+				process.env.https_proxy,
 			noProxy = process.env.NO_PROXY || process.env.no_proxy,
 			...agentOptions
 		} = options;
+
+		let httpProxy;
+		try {
+			httpProxy = rawHttpProxy ? new URL(rawHttpProxy) : undefined;
+		} catch (error) {
+			const message = `Invalid url "${rawHttpProxy}" for httpProxy: ${
+				error.message || "Unknown error"
+			}`;
+
+			if (options.httpProxy) {
+				throw new Error(message);
+			} else {
+				console.warn(`[gate-agent] ${message}, skipping http proxy`);
+			}
+		}
+
+		let httpsProxy;
+		try {
+			httpsProxy = rawHttpsProxy ? new URL(rawHttpsProxy) : undefined;
+		} catch (error) {
+			const message = `Invalid url "${rawHttpsProxy}" for httpsProxy: ${
+				error.message || "Unknown error"
+			}`;
+
+			if (options.httpProxy) {
+				throw new Error(message);
+			} else {
+				console.warn(`[gate-agent] ${message}, skipping https proxy`);
+			}
+		}
 
 		this.noProxy = noProxy
 			? typeof noProxy === "string"
@@ -58,18 +91,34 @@ export class GateAgent extends Agent {
 		this.agents = {
 			http: new HttpAgent(agentOptions),
 			https: new HttpsAgent(agentOptions),
-			httpProxy: httpProxy ? new HttpProxyAgent(httpProxy) : undefined,
-			httpsProxy: httpsProxy ? new HttpsProxyAgent(httpsProxy) : undefined,
+			httpProxy: httpProxy
+				? new HttpProxyAgent({
+						secureProxy: httpProxy.protocol === "https:",
+						host: httpProxy.host,
+						path: `${httpProxy.pathname}${httpProxy.search}`,
+						port: httpProxy.port || null,
+						...agentOptions,
+				  })
+				: undefined,
+			httpsProxy: httpsProxy
+				? new HttpsProxyAgent({
+						secureProxy: httpsProxy.protocol === "https:",
+						host: httpsProxy.host,
+						path: `${httpsProxy.pathname}${httpsProxy.search}`,
+						port: httpsProxy.port || null,
+						...agentOptions,
+				  })
+				: undefined,
 		};
 	}
 
 	callback(request: FutureOrInternalRequest) {
 		const protocol = request.protocol || request.agent?.protocol || "https:";
 		const host = request.host || request.getHeader("host") || "localhost";
-		const url = new URL(request.path, `${protocol}//${host}`);
+		const url = new URL(request.path, `${protocol}//${host}`).toString();
 
-		const isHttps = url.protocol === "https:";
-		const noProxy = matchUrl(url.toString(), this.noProxy);
+		const isHttps = protocol === "https:";
+		const noProxy = matchUrl(url, this.noProxy);
 
 		debug(`${url} - https: ${isHttps}, proxy: ${!noProxy}`);
 
