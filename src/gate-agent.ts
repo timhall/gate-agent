@@ -3,9 +3,9 @@ import _debug from "debug";
 import { Agent as HttpAgent } from "http";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { Agent as HttpsAgent, AgentOptions } from "https";
-import { HttpsProxyAgent, HttpsProxyAgentOptions } from "https-proxy-agent";
 import matchUrl from "match-url-wildcard";
 import { URL } from "url";
+import { HttpsProxyAgent, HttpsProxyAgentOptions } from "./https-proxy-agent";
 
 const debug = _debug("gate-agent");
 
