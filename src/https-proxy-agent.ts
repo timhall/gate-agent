@@ -18,6 +18,7 @@ export class HttpsProxyAgent extends BaseHttpsProxyAgent {
 		// See https://github.com/TooTallNate/node-https-proxy-agent/pull/111
 		// for an open resolution
 
+		// Guard for internal API changes
 		const { proxy = {} } = this as any;
 
 		const options = {
@@ -28,6 +29,7 @@ export class HttpsProxyAgent extends BaseHttpsProxyAgent {
 			cert: proxy.cert,
 			pfx: proxy.pfx,
 			passphrase: proxy.passphrase,
+			ALPNProtocols: proxy.ALPNProtocols,
 
 			...requestOptions,
 		};

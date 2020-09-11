@@ -53,7 +53,10 @@ beforeEach(() => {
 	env.set("no_proxy", undefined);
 });
 
-afterEach(() => env.reset());
+afterEach(() => {
+	env.reset();
+	jest.clearAllMocks();
+});
 
 test("should be defined", () => {
 	expect(GateAgent).toBeDefined();
@@ -77,14 +80,14 @@ test("should load proxy values from the environment", () => {
 
 	env.reset();
 
-	env.set("http_proxy", "http://localhost:1234");
+	env.set("http_proxy", "http://localhost");
 
 	agent = new GateAgent();
 	expect((agent.agents.httpProxy as any).options).toEqual({
 		secureProxy: false,
-		host: "localhost:1234",
+		host: "localhost",
 		path: "/",
-		port: "1234",
+		port: null,
 	});
 
 	env.reset();
@@ -101,14 +104,14 @@ test("should load proxy values from the environment", () => {
 
 	env.reset();
 
-	env.set("https_proxy", "http://localhost:1234");
+	env.set("https_proxy", "http://localhost");
 
 	agent = new GateAgent();
 	expect((agent.agents.httpsProxy as any).options).toEqual({
 		secureProxy: false,
-		host: "localhost:1234",
+		host: "localhost",
 		path: "/",
-		port: "1234",
+		port: null,
 	});
 
 	env.reset();
@@ -124,4 +127,176 @@ test("should load proxy values from the environment", () => {
 
 	agent = new GateAgent();
 	expect(agent.noProxy).toEqual([".a.com", ".b.com"]);
+});
+
+test("should throw for invalid httpProxy option", () => {
+	expect(() => new GateAgent({ httpProxy: "invalid" })).toThrow(
+		'Invalid url "invalid" for httpProxy'
+	);
+});
+
+test("should warn for invalid HTTP_PROXY", () => {
+	jest.spyOn(global.console, "warn").mockImplementation();
+
+	env.set("HTTP_PROXY", "invalid");
+
+	const agent = new GateAgent();
+
+	expect(console.warn).toHaveBeenCalledWith(
+		'[gate-agent] Invalid url "invalid" for httpProxy, skipping http proxy'
+	);
+});
+
+test("should throw for invalid httpsProxy option", () => {
+	expect(
+		() =>
+			new GateAgent({
+				httpProxy: "http://localhost:1234",
+				httpsProxy: "invalid",
+			})
+	).toThrow('Invalid url "invalid" for httpsProxy');
+});
+
+test("should warn for invalid HTTPS_PROXY", () => {
+	jest.spyOn(global.console, "warn").mockImplementation();
+
+	env.set("HTTPS_PROXY", "invalid");
+
+	const agent = new GateAgent();
+
+	expect(console.warn).toHaveBeenCalledWith(
+		'[gate-agent] Invalid url "invalid" for httpsProxy, skipping https proxy'
+	);
+});
+
+test("callback should pick agent based on protocol and no proxy (>=14)", () => {
+	const agent = new GateAgent({
+		httpProxy: "http://localhost:1234",
+		httpsProxy: "http://localhost:5678",
+		noProxy: ["google.com"],
+	});
+
+	expect(
+		agent.callback({
+			protocol: "https:",
+			host: "github.com",
+			path: "timhall/gate-agent",
+		} as any)
+	).toBe(agent.agents.httpsProxy);
+
+	expect(
+		agent.callback({
+			protocol: "http:",
+			host: "github.com",
+			path: "timhall/gate-agent",
+		} as any)
+	).toBe(agent.agents.httpProxy);
+
+	expect(
+		agent.callback({
+			protocol: "https:",
+			host: "google.com",
+		} as any)
+	).toBe(agent.agents.https);
+
+	expect(
+		agent.callback({
+			protocol: "http:",
+			host: "google.com",
+		} as any)
+	).toBe(agent.agents.http);
+});
+
+test("callback should pick agent based on protocol and no proxy (<=12)", () => {
+	const agent = new GateAgent({
+		httpProxy: "http://localhost:1234",
+		httpsProxy: "http://localhost:5678",
+		noProxy: ["google.com"],
+	});
+
+	expect(
+		agent.callback({
+			agent: { protocol: "https:" },
+			getHeader: () => "github.com",
+			path: "timhall/gate-agent",
+		} as any)
+	).toBe(agent.agents.httpsProxy);
+
+	expect(
+		agent.callback({
+			agent: { protocol: "http:" },
+			getHeader: () => "github.com",
+			path: "timhall/gate-agent",
+		} as any)
+	).toBe(agent.agents.httpProxy);
+
+	expect(
+		agent.callback({
+			agent: { protocol: "https:" },
+			getHeader: () => "google.com",
+		} as any)
+	).toBe(agent.agents.https);
+
+	expect(
+		agent.callback({
+			agent: { protocol: "http:" },
+			getHeader: () => "google.com",
+		} as any)
+	).toBe(agent.agents.http);
+});
+
+test("callback should pick agent based on protocol and no proxy (fallback)", () => {
+	const agent = new GateAgent({
+		httpProxy: "http://localhost:1234",
+		httpsProxy: "http://localhost:5678",
+		noProxy: ["google.com"],
+	});
+
+	expect(
+		agent.callback({
+			getHeader: () => "",
+			path: "local",
+		} as any)
+	).toBe(agent.agents.httpsProxy);
+});
+
+test("should fallback to https agent for missing https proxy", () => {
+	const agent = new GateAgent({
+		httpProxy: "http://localhost:1234",
+		noProxy: ["google.com"],
+	});
+
+	expect(
+		agent.callback({
+			protocol: "https:",
+			host: "github.com",
+			path: "timhall/gate-agent",
+		} as any)
+	).toBe(agent.agents.https);
+});
+
+test("should use http_proxy -> https_proxy -> http agent for http requests", () => {
+	const request = {
+		protocol: "http:",
+		host: "github.com",
+		path: "timhall/gate-agent",
+	} as any;
+
+	let agent = new GateAgent({
+		httpProxy: "http://localhost:1234",
+		noProxy: ["google.com"],
+	});
+
+	expect(agent.callback(request)).toBe(agent.agents.httpProxy);
+
+	agent = new GateAgent({
+		httpsProxy: "http://localhost:1234",
+		noProxy: ["google.com"],
+	});
+
+	expect(agent.callback(request)).toBe(agent.agents.httpsProxy);
+
+	agent = new GateAgent();
+
+	expect(agent.callback(request)).toBe(agent.agents.http);
 });

@@ -18,7 +18,8 @@
 		"build": "tsc",
 		"test": "jest",
 		"typecheck": "tsc --noEmit",
-		"format": "prettier --write \"src/**/*.ts\""
+		"format": "prettier --write \"src/**/*.ts\"",
+		"prepublishOnly": "rimraf dist && tsc"
 	},
 	"dependencies": {
 		"agent-base": "^6.0.1",
@@ -33,6 +34,7 @@
 		"@types/jest": "^26.0.10",
 		"@types/node": "^14.6.0",
 		"jest": "^26.4.2",
+		"rimraf": "^3.0.2",
 		"ts-jest": "^26.2.0",
 		"typescript": "^4.0.2"
 	},

@@ -52,9 +52,7 @@ export class GateAgent extends Agent {
 		try {
 			httpProxy = rawHttpProxy ? new URL(rawHttpProxy) : undefined;
 		} catch (error) {
-			const message = `Invalid url "${rawHttpProxy}" for httpProxy: ${
-				error.message || "Unknown error"
-			}`;
+			const message = `Invalid url "${rawHttpProxy}" for httpProxy`;
 
 			if (options.httpProxy) {
 				throw new Error(message);
@@ -67,9 +65,7 @@ export class GateAgent extends Agent {
 		try {
 			httpsProxy = rawHttpsProxy ? new URL(rawHttpsProxy) : undefined;
 		} catch (error) {
-			const message = `Invalid url "${rawHttpsProxy}" for httpsProxy: ${
-				error.message || "Unknown error"
-			}`;
+			const message = `Invalid url "${rawHttpsProxy}" for httpsProxy`;
 
 			if (options.httpProxy) {
 				throw new Error(message);
