@@ -72,10 +72,18 @@ test("should load proxy values from the environment", () => {
 
 	agent = new GateAgent();
 	expect((agent.agents.httpProxy as any).options).toEqual({
-		secureProxy: false,
+		protocol: "http:",
+		auth: null,
 		host: "localhost:5678",
-		path: "/?a=1",
+		hostname: "localhost",
 		port: "5678",
+		path: "/?a=1",
+		pathname: "/",
+		search: "?a=1",
+		query: "a=1",
+		hash: "#bc",
+		href: "http://localhost:5678/?a=1#bc",
+		slashes: true,
 	});
 
 	env.reset();
@@ -84,10 +92,18 @@ test("should load proxy values from the environment", () => {
 
 	agent = new GateAgent();
 	expect((agent.agents.httpProxy as any).options).toEqual({
-		secureProxy: false,
+		protocol: "http:",
+		auth: null,
 		host: "localhost",
-		path: "/",
+		hostname: "localhost",
 		port: null,
+		path: "/",
+		pathname: "/",
+		search: null,
+		query: null,
+		hash: null,
+		href: "http://localhost/",
+		slashes: true,
 	});
 
 	env.reset();
@@ -96,22 +112,38 @@ test("should load proxy values from the environment", () => {
 
 	agent = new GateAgent();
 	expect((agent.agents.httpsProxy as any).options).toEqual({
-		secureProxy: false,
+		protocol: "http:",
+		auth: null,
 		host: "localhost:5678",
-		path: "/?a=1",
+		hostname: "localhost",
 		port: "5678",
+		path: "/?a=1",
+		pathname: "/",
+		search: "?a=1",
+		query: "a=1",
+		hash: "#bc",
+		href: "http://localhost:5678/?a=1#bc",
+		slashes: true,
 	});
 
 	env.reset();
 
-	env.set("https_proxy", "http://localhost");
+	env.set("https_proxy", "http://user:pass@localhost");
 
 	agent = new GateAgent();
 	expect((agent.agents.httpsProxy as any).options).toEqual({
-		secureProxy: false,
+		protocol: "http:",
+		auth: "user:pass",
 		host: "localhost",
-		path: "/",
+		hostname: "localhost",
 		port: null,
+		path: "/",
+		pathname: "/",
+		search: null,
+		query: null,
+		hash: null,
+		href: "http://user:pass@localhost/",
+		slashes: true,
 	});
 
 	env.reset();

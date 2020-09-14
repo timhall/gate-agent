@@ -4,7 +4,7 @@ import { Agent as HttpAgent } from "http";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { Agent as HttpsAgent, AgentOptions } from "https";
 import matchUrl from "match-url-wildcard";
-import { URL } from "url";
+import { URL, Url } from "url";
 import { HttpsProxyAgent, HttpsProxyAgentOptions } from "./https-proxy-agent";
 
 const debug = _debug("gate-agent");
@@ -89,19 +89,13 @@ export class GateAgent extends Agent {
 			https: new HttpsAgent(agentOptions),
 			httpProxy: httpProxy
 				? new HttpProxyAgent({
-						secureProxy: httpProxy.protocol === "https:",
-						host: httpProxy.host,
-						path: `${httpProxy.pathname}${httpProxy.search}`,
-						port: httpProxy.port || null,
+						...toUrlParse(httpProxy),
 						...agentOptions,
 				  })
 				: undefined,
 			httpsProxy: httpsProxy
 				? new HttpsProxyAgent({
-						secureProxy: httpsProxy.protocol === "https:",
-						host: httpsProxy.host,
-						path: `${httpsProxy.pathname}${httpsProxy.search}`,
-						port: httpsProxy.port || null,
+						...toUrlParse(httpsProxy),
 						...agentOptions,
 				  })
 				: undefined,
@@ -124,4 +118,22 @@ export class GateAgent extends Agent {
 			? this.agents.httpsProxy || this.agents.https
 			: this.agents.httpProxy || this.agents.httpsProxy || this.agents.http;
 	}
+}
+
+function toUrlParse(url: URL): Url {
+	return {
+		protocol: url.protocol,
+		auth:
+			url.username || url.password ? `${url.username}:${url.password}` : null,
+		host: url.host,
+		hostname: url.hostname,
+		port: url.port || null,
+		path: `${url.pathname}${url.search}`,
+		pathname: url.pathname,
+		search: url.search || null,
+		query: url.search ? url.search.slice(1) : null,
+		hash: url.hash || null,
+		href: url.href,
+		slashes: true,
+	};
 }
