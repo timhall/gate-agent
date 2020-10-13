@@ -1,6 +1,6 @@
 # gate-agent
 
-Node.js Agent with HTTP_PROXY, HTTP_PROXY, and NO_PROXY support for node-fetch, got, and others.
+Node.js Agent with HTTP_PROXY, HTTPS_PROXY, and NO_PROXY (and their lower-case variants) support for node-fetch, got, and others.
 
 ## Example
 
