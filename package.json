@@ -15,28 +15,35 @@
 		"NO_PROXY"
 	],
 	"scripts": {
-		"build": "tsc",
+		"build": "rollup -c && tsc --declaration --emitDeclarationOnly --declarationDir dist",
 		"test": "jest",
 		"typecheck": "tsc --noEmit",
 		"format": "prettier --write \"src/**/*.ts\"",
 		"prepublishOnly": "rimraf dist && tsc"
 	},
-	"dependencies": {
-		"agent-base": "^6.0.1",
-		"debug": "^4.1.1",
+	"dependencies": {},
+	"peerDependencies": {},
+	"optionalDependencies": {
+		"debug": "^4.1.1"
+	},
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^15.1.0",
+		"@rollup/plugin-node-resolve": "^9.0.0",
+		"@rollup/plugin-typescript": "^6.1.0",
+		"@types/debug": "^4.1.5",
+		"@types/jest": "^26.0.15",
+		"@types/node": "^14.14.5",
+		"agent-base": "^6.0.2",
 		"http-proxy-agent": "^4.0.1",
 		"https-proxy-agent": "^5.0.0",
-		"match-url-wildcard": "0.0.4"
-	},
-	"peerDependencies": {},
-	"devDependencies": {
-		"@types/debug": "^4.1.5",
-		"@types/jest": "^26.0.10",
-		"@types/node": "^14.6.0",
-		"jest": "^26.4.2",
+		"jest": "^26.6.1",
+		"match-url-wildcard": "0.0.4",
 		"rimraf": "^3.0.2",
-		"ts-jest": "^26.2.0",
-		"typescript": "^4.0.2"
+		"rollup": "^2.32.1",
+		"rollup-plugin-filesize": "^9.0.2",
+		"ts-jest": "^26.4.3",
+		"tslib": "^2.0.3",
+		"typescript": "^4.0.5"
 	},
 	"jest": {
 		"testEnvironment": "node",

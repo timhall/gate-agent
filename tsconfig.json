@@ -7,14 +7,12 @@
 			"es2020.string",
 			"es2020.symbol.wellknown"
 		],
-		"module": "commonjs",
+		"module": "es2015",
 		"target": "es2019",
 		"moduleResolution": "node",
 		"esModuleInterop": true,
 		"skipLibCheck": true,
-		"declaration": true,
-		"sourceMap": true,
-		"outDir": "dist"
+		"sourceMap": true
 	},
 	"include": ["src/**/*"],
 	"exclude": ["node_modules", "src/**/__tests__"]
