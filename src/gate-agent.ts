@@ -1,20 +1,20 @@
 import { Agent, ClientRequest } from "agent-base";
 import _debug from "debug";
-import { Agent as HttpAgent } from "http";
+import { Agent as HttpAgent, OutgoingHttpHeaders } from "http";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { Agent as HttpsAgent, AgentOptions } from "https";
 import matchUrl from "match-url-wildcard";
 import { URL, Url } from "url";
-import { HttpsProxyAgent, HttpsProxyAgentOptions } from "./https-proxy-agent";
+import { HttpsProxyAgent } from "./https-proxy-agent";
 
 const debug = _debug("gate-agent");
 
-export type GateAgentOptions = AgentOptions &
-	Pick<HttpsProxyAgentOptions, "headers"> & {
-		httpProxy?: string;
-		httpsProxy?: string;
-		noProxy?: string | string[];
-	};
+export type GateAgentOptions = AgentOptions & {
+	headers?: OutgoingHttpHeaders;
+	httpProxy?: string;
+	httpsProxy?: string;
+	noProxy?: string | string[];
+};
 
 type FutureOrInternalRequest = ClientRequest & {
 	// v14.5.0+
