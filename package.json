@@ -6,7 +6,7 @@
 	"license": "MIT",
 	"repository": "https://github.com/timhall/gate-agent.git",
 	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
+	"types": "gate-agent.d.ts",
 	"keywords": [
 		"proxy",
 		"agent",
@@ -15,7 +15,7 @@
 		"NO_PROXY"
 	],
 	"scripts": {
-		"build": "rollup -c && tsc --declaration --emitDeclarationOnly --declarationDir dist",
+		"build": "rollup -c",
 		"test": "jest",
 		"typecheck": "tsc --noEmit",
 		"format": "prettier --write \"src/**/*.ts\"",
