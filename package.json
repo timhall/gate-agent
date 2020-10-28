@@ -1,6 +1,6 @@
 {
 	"name": "gate-agent",
-	"version": "0.1.2",
+	"version": "0.2.0",
 	"author": "Tim Hall <tim.hall.engr@gmail.com>",
 	"description": "Node.js Agent with HTTP_PROXY, HTTP_PROXY, and NO_PROXY support for node-fetch, got, and others",
 	"license": "MIT",
