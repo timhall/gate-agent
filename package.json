@@ -51,6 +51,7 @@
 	},
 	"files": [
 		"dist",
-		"register.js"
+		"register.js",
+		"gate-agent.d.ts"
 	]
 }
