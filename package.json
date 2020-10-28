@@ -19,7 +19,7 @@
 		"test": "jest",
 		"typecheck": "tsc --noEmit",
 		"format": "prettier --write \"src/**/*.ts\"",
-		"prepublishOnly": "rimraf dist && tsc"
+		"prepublishOnly": "rimraf dist && npm run build"
 	},
 	"dependencies": {},
 	"peerDependencies": {},
@@ -50,6 +50,7 @@
 		"preset": "ts-jest"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"register.js"
 	]
 }
